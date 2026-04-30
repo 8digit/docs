@@ -1,0 +1,98 @@
+---
+title: "Get started with Knouds in under five minutes"
+description: "Create an account, build your first image generation workflow on the canvas, run it, and deploy it as a callable REST API endpoint — step by step."
+---
+
+The fastest way to understand Knouds is to build something real. This guide walks you through creating an image generation workflow from scratch, running it on the canvas, and deploying it so you can call it from your own code. The whole process takes less than five minutes.
+
+<Note>
+  AI model calls (image generation, video generation, LLM inference) consume **credits**. Free accounts include a starting credit balance. Make sure you have credits available before running generator nodes. You can check your balance in **Settings → Billing**.
+</Note>
+
+<Steps>
+  <Step title="Sign up at knouds.ai">
+    Go to [knouds.ai](https://knouds.ai) and create an account with your email address or Google login. You'll receive a verification email — click the link to activate your account. Once verified, you'll land on your workflow dashboard.
+  </Step>
+
+  <Step title="Create a new workflow">
+    Click **New workflow** on the dashboard. In the modal that appears, choose **From scratch**, then type a name for your workflow — for example, `my-first-pipeline`. Click **Create**.
+
+    The canvas opens. You'll see an empty dark workspace where you'll build your pipeline.
+
+    <Tip>
+      Give your workflow a meaningful name now. The name becomes part of its API URL slug and cannot be changed after creation.
+    </Tip>
+  </Step>
+
+  <Step title="Add a Request Input node">
+    Open the node panel on the left side of the canvas. Under the **Inputs** category, drag a **Request Input** node onto the canvas.
+
+    Click the node to open its settings. Add a field named `prompt` with type **Text**. This field will become the body parameter when you call the deployed workflow via API.
+  </Step>
+
+  <Step title="Add an Image Generator node">
+    In the node panel, find **Image Generator** under the **Image Models** category and drag it onto the canvas, to the right of your Request Input node.
+
+    The Image Generator node shows a model picker at the top. Leave it on the default model for now.
+  </Step>
+
+  <Step title="Connect the nodes">
+    Hover over the **Request Input** node. You'll see a small colored dot on its right edge — that's the output handle for the `prompt` field, colored orange (text type).
+
+    Click and drag from that orange dot to the **Prompt** input handle on the Image Generator node (also orange). A wire appears connecting the two. Now whatever you type into the `prompt` field will flow into the image generator.
+  </Step>
+
+  <Step title="Add a Response Output node">
+    Drag a **Response Output** node from the **Outputs** category onto the canvas, to the right of the Image Generator.
+
+    Connect the pink **image-out** handle on the Image Generator to the input of the Response Output node. This tells Knouds to return the generated image when the workflow runs as an API.
+  </Step>
+
+  <Step title="Run the workflow">
+    Click the **Run** button (▶) on the Image Generator node, or click **Run all** in the toolbar at the top of the canvas.
+
+    A prompt box appears — type a description like `a serene mountain lake at sunset` and click **Run**.
+
+    The node status indicator turns yellow while the model runs, then green when it's done. The generated image appears inline on the node card. Click it to view it full size.
+  </Step>
+
+  <Step title="Deploy as an API">
+    Click **Deploy** in the top toolbar. Knouds marks your workflow as deployed and generates a stable API endpoint at:
+
+    ```
+    POST https://knouds.ai/api/workflows/my-first-pipeline/run
+    ```
+
+    To call it, you need an API key. Go to **Settings → API Keys**, click **New key**, give it a name, and copy the key shown (it only appears once).
+
+    Now call your pipeline from the terminal:
+
+    ```bash
+    curl -X POST https://knouds.ai/api/workflows/my-first-pipeline/run \
+      -H "x-api-key: YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"inputs": {"prompt": "a serene mountain lake at sunset"}}'
+    ```
+
+    The response includes the generated image URL in the `result` object.
+  </Step>
+</Steps>
+
+## What's next
+
+You've built and deployed a working AI pipeline. From here you can:
+
+<CardGroup cols={2}>
+  <Card title="Explore all node types" icon="diagram-project" href="/nodes/overview">
+    Add video generation, music generation, LLM analysis, HTTP requests, and more to your pipelines.
+  </Card>
+  <Card title="API reference" icon="code" href="/api/overview">
+    Full documentation for workflow runs, model runs, authentication, scopes, and error codes.
+  </Card>
+  <Card title="Core concepts" icon="lightbulb" href="/concepts">
+    Understand execution order, handle types, deployment schema, and credits in depth.
+  </Card>
+  <Card title="Credits & plans" icon="credit-card" href="/account/credits">
+    Learn how credits work, how to top up, and what each plan includes.
+  </Card>
+</CardGroup>

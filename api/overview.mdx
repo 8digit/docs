@@ -1,0 +1,46 @@
+---
+title: "Knouds REST API overview: endpoints and base URL"
+description: "The Knouds REST API lets you trigger deployed workflows and individual AI models programmatically from any language or CI pipeline."
+---
+
+The Knouds REST API gives you programmatic access to every deployed workflow and registered AI model on your account. You send JSON over HTTPS and get back results, media URLs, and cost metadata — no browser required. The same endpoints that power the Knouds canvas are available to your scripts, CI jobs, and backend services.
+
+## Base URL
+
+All API requests go to:
+
+```
+https://knouds.ai/api
+```
+
+## Authentication
+
+Every request must include either an `x-api-key` header (for scripts and integrations) or a valid session cookie (browser only). See [Authentication](/api/authentication) for how to generate a key and which scopes to use.
+
+```bash
+curl -H "x-api-key: $KNOUDS_KEY" https://knouds.ai/api/workflows
+```
+
+## Request and response format
+
+All endpoints accept and return JSON. Set `Content-Type: application/json` on any request that has a body.
+
+Successful responses return a `2xx` status with a JSON body. Errors return a non-`2xx` status with a `{ error, code, ...context }` shape. See [Error codes](/api/errors) for the full list.
+
+## Available endpoints
+
+| Endpoint | Scope required | Description |
+|---|---|---|
+| `POST /api/workflows/:slug/run` | any | Run a deployed workflow |
+| `POST /api/models/:internalName/run` | `admin` | Run a single registered model |
+| `GET /api/workflows` | any (session) | List your workflows |
+| `GET /api/workflows/:slug` | any (session) | Get a workflow's full JSON |
+| `POST /api/workflows` | `admin` | Create a workflow |
+| `PUT /api/workflows/:slug` | `admin` | Update a workflow |
+| `DELETE /api/workflows/:slug` | `admin` | Delete a workflow |
+| `GET /api/workflows/:slug/schema` | any authed | Inspect input/output schema |
+| `GET /api/workflows/:slug/public-schema` | none | Public playground schema |
+
+## Versioning
+
+The endpoint surface above is the v4.7+ stable contract. Breaking changes — renamed routes, removed scopes, new required fields — ship as a major version with a deprecation entry in `CHANGELOG.md`. Additive changes such as new optional fields, new scopes, and new endpoints roll out continuously without versioning.

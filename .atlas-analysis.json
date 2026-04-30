@@ -1,0 +1,100 @@
+{
+  "projectType": "saas",
+  "projectName": "Knouds",
+  "projectDescription": "Knouds is a visual AI pipeline editor where you connect nodes on a canvas to build image, video, and audio generation workflows, then deploy them as callable API endpoints.",
+  "theme": "luma",
+  "primaryColor": "#0c0c0c",
+  "lightColor": "#848484",
+  "darkColor": "#c9c9c9",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "concepts"
+            ]
+          },
+          {
+            "group": "Building Workflows",
+            "pages": [
+              "nodes/overview",
+              "nodes/generators",
+              "nodes/input-output",
+              "nodes/utilities",
+              "workflows/canvas",
+              "workflows/deploy"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "integrations/api-keys",
+              "integrations/webhooks"
+            ]
+          },
+          {
+            "group": "Account",
+            "pages": [
+              "account/credits",
+              "account/plans",
+              "account/business"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/overview",
+              "api/authentication",
+              "api/errors"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api/run-workflow",
+              "api/run-model",
+              "api/workflows",
+              "api/schemas"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Visual node-based canvas for building AI pipelines",
+    "Image generation nodes (multiple models via registry)",
+    "Video generation nodes (Kling, Seedance, and more)",
+    "Music/audio generation nodes (Suno and others)",
+    "AI Assistant node (Claude, OpenAI, Gemini)",
+    "HTTP Request node for connecting external APIs",
+    "Deploy workflows as callable REST API endpoints",
+    "Public playground sharing for workflows",
+    "Credit-based billing with tier plans",
+    "Per-user API keys with scope-based access control",
+    "Media upload and S3-backed storage",
+    "Workflow folders for organization"
+  ],
+  "publicApiSurface": [
+    "POST /api/workflows/:slug/run",
+    "GET /api/workflows/:slug/schema",
+    "GET /api/workflows/:slug/public-schema",
+    "GET /api/workflows",
+    "GET /api/workflows/:slug",
+    "POST /api/workflows",
+    "PUT /api/workflows/:slug",
+    "DELETE /api/workflows/:slug",
+    "POST /api/models/:internalName/run",
+    "GET /api/pricing/public"
+  ]
+}

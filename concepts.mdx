@@ -1,0 +1,137 @@
+---
+title: "Knouds core concepts: nodes, edges, and workflows"
+description: "The mental model behind Knouds: how workflows, nodes, edges, handles, execution order, deployment, and credits fit together into an AI pipeline editor."
+---
+
+Before you build complex pipelines, it helps to understand how the pieces of Knouds fit together. Everything on the canvas maps to a small set of concepts: a workflow holds nodes and edges; nodes do work; edges carry data between them; handles define what data each port accepts; execution runs nodes in the right order; and deployment exposes the whole thing as an API. Credits pay for the AI model calls.
+
+<AccordionGroup>
+
+  <Accordion title="Workflow">
+    A **workflow** is a named pipeline saved as a JSON document. It contains a list of nodes, the edges connecting them, and canvas viewport state. Every workflow has a unique slug (e.g. `my-thumbnail-pipeline`) that becomes part of its API URL and cannot be changed after creation.
+
+    Workflows are private to your account by default. You can mark a workflow as a template to share it, or enable a public playground so others can run it without an account.
+
+    Key properties of a workflow:
+
+    - **name** — the human-readable label shown on your dashboard
+    - **slug** — URL-safe identifier, set once at creation time
+    - **nodes** — the steps in the pipeline
+    - **edges** — the wires connecting node outputs to node inputs
+    - **isTemplate** — whether this workflow appears in the template gallery
+    - **publicPlayground** — whether the workflow can be run without login
+
+    When you deploy a workflow, Knouds exposes it at `POST /api/workflows/:slug/run`. Your Request Input nodes define the body schema; your Response Output node defines the JSON response shape.
+  </Accordion>
+
+  <Accordion title="Node">
+    A **node** is a single step in a pipeline. Each node has a type that determines what it does, a set of input handles, and a set of output handles. You configure a node by filling in its fields on the canvas card or in the side panel that opens when you select it.
+
+    Knouds ships with the following node types:
+
+    | Node | Category | What it does |
+    |------|----------|--------------|
+    | **Request Input** | Inputs | Defines the fields callers must supply when running the workflow via API |
+    | **Upload** | Inputs | Lets you attach an image, video, or audio file directly on the canvas |
+    | **Image Generator** | Image Models | Generates images from a text prompt using the selected AI model |
+    | **Video Generator** | Video Models | Generates video from text or an image using the selected AI model |
+    | **Music Generator** | Music Models | Generates audio tracks from a text prompt |
+    | **Assistant** | LLMs | Sends a prompt (and optional images) to an LLM and returns the text response |
+    | **HTTP Request** | Utilities | Makes an HTTP call to any external URL and passes the response downstream |
+    | **List** | Utilities | Collects multiple outputs into an ordered list |
+    | **Text Box** | Canvas | A rich-text annotation node — supports markdown, links, and formatting |
+    | **Sticky Note** | Canvas | A colored annotation for labeling areas of the canvas; never runs |
+    | **Response Output** | Outputs | Captures the final result and defines what the API response returns |
+
+    <Tip>
+      Sticky Notes and Text Boxes are decorative — they never participate in execution and don't count toward your credit usage.
+    </Tip>
+  </Accordion>
+
+  <Accordion title="Edge (wire)">
+    An **edge** (also called a wire) is a connection from one node's output handle to another node's input handle. Drawing an edge is how you tell Knouds to pass data from one step to the next.
+
+    Edges are typed — you can only connect handles of the same data type (or a port typed `any`). Knouds enforces this visually: when you start dragging from an output handle, only compatible input handles light up as valid drop targets.
+
+    Edges animate with a flowing dashed line while a workflow is executing, so you can watch data move through the pipeline in real time.
+  </Accordion>
+
+  <Accordion title="Handle (port)">
+    A **handle** (also called a port) is a typed connection point on the edge of a node. Input handles sit on the left side of a node; output handles sit on the right. Each handle has a color that tells you what kind of data it carries.
+
+    | Type | Color | Carries |
+    |------|-------|---------|
+    | `image` | Pink | Image file URLs |
+    | `video` | Red | Video file URLs |
+    | `audio` | Cyan | Audio file URLs |
+    | `text` | Orange | Strings, prompts, and analysis output |
+    | `media` | Light pink | Any uploaded media file |
+    | `aspect_ratio` | Amber | Aspect ratio values (e.g. `16:9`) |
+    | `resolution` | Green | Resolution values |
+    | `any` | Purple | Accepts or emits any data type |
+
+    Handle types are resolved from the handle's ID. For example, any handle whose ID contains `image` is treated as an image handle and shown in pink. The `any` handle type is used for flexible connections — it can connect to handles of any type.
+  </Accordion>
+
+  <Accordion title="Execution">
+    When you click **Run**, Knouds determines which nodes to execute and in what order. The rules are:
+
+    1. **Only connected nodes run.** A node with no edges (and not explicitly targeted by "Run this node only") is skipped. Decorative nodes like Sticky Notes and Text Boxes have no handles, so they are always skipped.
+    2. **Execution follows topological order.** Knouds resolves which nodes depend on other nodes' outputs and runs upstream nodes first. An Image Generator will always finish before a downstream Video Generator that uses its output — regardless of where you placed them on the canvas.
+    3. **Failed nodes cascade.** If a node errors, any nodes that depend on its output are also marked as errored and skipped.
+
+    Each node shows a status indicator: idle (grey), executing (yellow), completed (green), or error (red). You can stop a running workflow at any time using the **Stop** button in the toolbar, or stop individual nodes using the per-node stop control.
+
+    You can run multiple nodes concurrently — for example, two Image Generators on the same canvas can run at the same time without blocking each other.
+  </Accordion>
+
+  <Accordion title="Deployment">
+    **Deploying** a workflow makes it callable as a REST API endpoint without opening the canvas. When deployed:
+
+    - Each **Request Input** field you defined becomes a required key in the `POST` body under `inputs`.
+    - The **Response Output** node's value is returned as the `result` key in the JSON response.
+
+    The endpoint URL is always `POST /api/workflows/:slug/run`. You can inspect the exact schema before calling it:
+
+    ```bash
+    GET https://knouds.ai/api/workflows/:slug/schema
+    ```
+
+    Authentication uses your API key via the `x-api-key` header. See [API Keys](/integrations/api-keys) to generate one and [Run a deployed workflow](/api/run-workflow) for the full endpoint reference.
+
+    <Warning>
+      The workflow slug is set at creation time and cannot be renamed. If you need a different URL, create a new workflow. Changing the name display label does not change the slug or endpoint URL.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="Credits">
+    **Credits** are the currency Knouds uses to pay for AI model calls. Every time you run an Image Generator, Video Generator, Music Generator, or Assistant node — on the canvas or via API — Knouds deducts credits from your balance.
+
+    The cost in credits is shown on each generator node card before you run it, so you can estimate usage before committing.
+
+    Key points about credits:
+
+    - **Canvas runs and API runs both consume credits.** Running a workflow on the canvas and calling it via API are equivalent from a billing perspective.
+    - **Decorative nodes are free.** Sticky Notes, Text Boxes, Request Input, Response Output, List, and HTTP Request nodes never deduct credits.
+    - **Some models offer trial generations.** Certain models on certain plans include a fixed number of free trial runs. Once those are used, you must upgrade your plan — trial generations do not fall back to credit billing.
+    - **Top-up packs** let you add credits to your balance at any time from **Settings → Billing**.
+
+    See [Credits & plans](/account/credits) for a full breakdown of what each plan includes and how to manage your balance.
+  </Accordion>
+
+</AccordionGroup>
+
+## Putting it together
+
+A typical Knouds workflow looks like this: a **Request Input** node collects a text prompt from the caller → an **Image Generator** node turns it into an image → a **Response Output** node returns the image URL. Each arrow is an edge; each endpoint is a handle. When you deploy the workflow, the `prompt` field from Request Input becomes the API body parameter, and the image URL from Response Output becomes the API response.
+
+Once you understand this flow, you can build arbitrarily complex pipelines: branch outputs to multiple generators, feed an image into an LLM for description, chain the description back into another image generator, collect results into a list, and return everything in one API call.
+
+<CardGroup cols={2}>
+  <Card title="Node types" icon="diagram-project" href="/nodes/overview">
+    Full reference for every node available on the canvas.
+  </Card>
+  <Card title="API reference" icon="code" href="/api/overview">
+    Authenticate and call your deployed workflows from code.
+  </Card>
+</CardGroup>

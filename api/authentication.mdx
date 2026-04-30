@@ -1,0 +1,67 @@
+---
+title: "Authenticate requests to the Knouds API with API keys"
+description: "Generate an API key, pass it via the x-api-key header, and understand the scope hierarchy that controls which endpoints your key can reach."
+---
+
+Every request to the Knouds API must be authenticated. You have two options: an `x-api-key` header for scripts and server-to-server integrations, or a session cookie when calling from a browser. The API key path is the right choice for any non-browser context — CI pipelines, backend services, or local scripts.
+
+## Getting an API key
+
+Generate a key in the Knouds app under **Settings → API Keys**. The plaintext value is shown exactly once at creation time — copy it immediately. If you lose the key, you must regenerate it; there is no way to retrieve the original value.
+
+<Warning>
+Store your API key in an environment variable or secrets manager. Never hardcode it in source code or commit it to version control.
+</Warning>
+
+## Passing the key
+
+Include the key in the `x-api-key` header on every request:
+
+```bash
+curl -H "x-api-key: knouds_live_abc..." https://knouds.ai/api/workflows
+```
+
+<ParamField header="x-api-key" type="string" required>
+  Your Knouds API key. Begins with `knouds_live_`. Passed as a request header on every authenticated call.
+</ParamField>
+
+## Session cookies
+
+If you are calling the API from a browser where the user is already signed in, the session cookie is accepted on all the same endpoints. This is intended for in-app integrations, not for server-side scripting.
+
+## Scopes
+
+Every API key carries a **scope** that gates which endpoints it can reach. Scopes are cumulative — a higher scope inherits all access below it.
+
+| Scope | Default tier | Capabilities | Rate limit |
+|---|---|---|---|
+| `free` | Free | Run your own deployed workflows | 10 req/min |
+| `deployment` | Pro | Run deployed workflows, read schemas | 100 req/min |
+| `admin` | Business / Enterprise | Run any model, full workflow CRUD | 1000 req/min |
+
+The default scope for a new key matches your account tier at the time of creation. Admin-role users can assign any scope at creation; non-admins are capped at their tier's ceiling.
+
+<Info>
+Scopes are cumulative: an `admin`-scope key can call every endpoint that `deployment` and `free` can reach.
+</Info>
+
+## Rate limiting
+
+Rate limits apply per `(user, route, minute)`. When you exceed your limit the API returns `429 RATE_LIMIT_EXCEEDED`. Check the response headers to find out when the window resets:
+
+```bash
+curl -i https://knouds.ai/api/workflows/foo/run \
+  -H "x-api-key: $KNOUDS_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"inputs":{}}' | grep -i ratelimit
+# X-RateLimit-Limit: 100
+# X-RateLimit-Remaining: 87
+# X-RateLimit-Reset: 1714512000
+```
+
+| Header | Description |
+|---|---|
+| `X-RateLimit-Limit` | Maximum requests per minute for your scope |
+| `X-RateLimit-Remaining` | Requests remaining in the current window |
+| `X-RateLimit-Reset` | Unix timestamp when the window resets |
+| `Retry-After` | Seconds to wait before retrying |

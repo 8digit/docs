@@ -1,0 +1,59 @@
+---
+title: "What is Knouds? Visual AI Pipeline Builder"
+description: "Knouds is a no-code canvas for building AI media pipelines. Connect image, video, audio, and LLM nodes visually, then deploy your workflow as a REST API."
+---
+
+Knouds is a visual canvas where you drag, connect, and run AI model nodes to build media generation pipelines — no machine learning expertise required. Instead of writing glue code to chain API calls together, you wire nodes with typed connections on a canvas, click **Run**, and see results inline. When your pipeline is ready, you deploy it as a REST endpoint your own code can call with a single HTTP request.
+
+## What you can build
+
+<CardGroup cols={2}>
+  <Card title="Image pipelines" icon="image" href="/nodes/generators">
+    Generate images from text prompts, pass them through an LLM for analysis, or chain multiple image generators together for style variations.
+  </Card>
+  <Card title="Video pipelines" icon="video" href="/nodes/generators">
+    Turn images into video clips, generate video from text descriptions, or extract frames and re-process them with other models.
+  </Card>
+  <Card title="Audio & music pipelines" icon="music" href="/nodes/generators">
+    Generate original music tracks and audio from text prompts, then feed them downstream into other nodes or return them directly as API output.
+  </Card>
+  <Card title="LLM-powered workflows" icon="brain" href="/nodes/generators">
+    Use the Assistant node to run Claude, GPT, or Gemini on text and images — summarize, describe, classify, or transform data mid-pipeline.
+  </Card>
+</CardGroup>
+
+## Key value props
+
+**No-code pipeline building.** Every AI model is a node with labeled inputs and outputs. You connect them visually instead of reading provider documentation and writing API wrappers.
+
+**Deploy as an API.** Once your workflow does what you want on the canvas, one click deploys it as a `POST` endpoint. Your Request Input nodes become the request body; your Response Output node becomes the JSON response. Anyone with your API key can call it.
+
+**Typed connections.** Each connection point (called a handle) carries a specific data type — image, video, audio, text, and more — so Knouds prevents you from accidentally wiring an audio output into an image input. The color-coded ports make valid connections obvious at a glance.
+
+## Handle types at a glance
+
+Every node port has a color that tells you what kind of data it carries:
+
+| Type | Color | Used for |
+|------|-------|----------|
+| `image` | Pink | Image files and URLs |
+| `video` | Red | Video files and URLs |
+| `audio` | Cyan | Audio files and URLs |
+| `text` | Orange | Prompts, analysis, and text values |
+| `media` | Light pink | Any uploaded media file |
+| `aspect_ratio` | Amber | Aspect ratio settings |
+| `resolution` | Green | Resolution settings |
+| `any` | Purple | Flexible, accepts any type |
+
+You can only draw a wire between two ports of the same type (or a port typed `any`). This keeps pipelines valid by construction.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Build your first workflow" icon="rocket" href="/quickstart">
+    Step-by-step guide from sign-up to running your first pipeline in minutes.
+  </Card>
+  <Card title="Core concepts" icon="lightbulb" href="/concepts">
+    Understand nodes, edges, handles, execution order, and deployment.
+  </Card>
+</CardGroup>

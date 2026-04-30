@@ -1,0 +1,47 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "Knouds",
+  "theme": "luma",
+  "logo": {
+    "light": "https://media.brand.dev/262e1dda-7768-4bda-b99a-587abcd2cc57.svg",
+    "dark": "https://media.brand.dev/262e1dda-7768-4bda-b99a-587abcd2cc57.svg"
+  },
+  "favicon": "https://media.brand.dev/301bdc82-6bf7-4e8c-b277-b2f60a2fce1b.png",
+  "colors": {
+    "primary": "#0c0c0c",
+    "light": "#848484",
+    "dark": "#c9c9c9"
+  },
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/8digit/8digit-knouds"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/overview",
+              "api/authentication",
+              "api/errors"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api/run-workflow",
+              "api/run-model",
+              "api/workflows",
+              "api/schemas"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

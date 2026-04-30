@@ -1,0 +1,72 @@
+---
+title: "POST /api/workflows/:slug/run — execute a workflow"
+description: "Run any deployed Knouds workflow by its slug, passing inputs as a JSON object and receiving results, media URLs, and cost metadata in return."
+---
+
+The workflow run endpoint is the primary way to integrate Knouds into your application. You send the inputs your workflow expects, Knouds executes every connected node in topological order, and you get back the outputs — image or video URLs, text, or any other result your pipeline produces.
+
+## Endpoint
+
+```
+POST /api/workflows/:slug/run
+```
+
+**Scope required:** any (`free`, `deployment`, or `admin`)
+
+## Path parameters
+
+<ParamField path="slug" type="string" required>
+  The workflow's URL slug, derived from the workflow name at creation. Find it in the Knouds app URL when the workflow is open, or via `GET /api/workflows`. Slugs are immutable after creation.
+</ParamField>
+
+## Request body
+
+<ParamField body="inputs" type="object" required>
+  Key-value pairs matching the field names defined in the workflow's Request Input node. String, number, and URL values are all accepted depending on what each field expects. Use `GET /api/workflows/:slug/schema` to inspect the exact field names and types for a given workflow.
+</ParamField>
+
+### Example
+
+```bash
+curl -X POST https://knouds.ai/api/workflows/my-thumbnail-pipeline/run \
+  -H "x-api-key: $KNOUDS_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"inputs":{"product_name":"Knouds","tagline":"AI pipelines"}}'
+```
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  `true` when the workflow completed without error.
+</ResponseField>
+
+<ResponseField name="result" type="object">
+  The workflow's output. Contains media URLs (S3-hosted) and any text emitted by output nodes. For workflows with multiple output nodes, `result` is an object keyed by each output node's label.
+</ResponseField>
+
+<ResponseField name="cost" type="number">
+  Execution cost in USD, before any tier markup is applied.
+</ResponseField>
+
+<ResponseField name="ms" type="number">
+  Total wall-clock time for the execution in milliseconds.
+</ResponseField>
+
+### Example response
+
+```json
+{
+  "success": true,
+  "result": {
+    "image": "https://knouds-media.s3.amazonaws.com/media/abc123.png"
+  },
+  "cost": 0.004,
+  "ms": 3821
+}
+```
+
+## Notes
+
+- The `inputs` keys must match the field names in the workflow's **Request Input** node exactly. Call `GET /api/workflows/:slug/schema` to discover the expected keys before making your first run call.
+- For workflows with a single output node, `result` is a flat object. For workflows with multiple output nodes, `result` is an object keyed by each output node's label.
+- This endpoint runs synchronously — the response is returned once the full workflow completes. Long-running video or audio workflows may take several seconds to respond.

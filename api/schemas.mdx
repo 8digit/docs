@@ -1,0 +1,98 @@
+---
+title: "Workflow schema endpoints: inspect inputs and outputs"
+description: "Use the Knouds schema endpoints to discover what inputs a workflow expects and what outputs it produces before calling the run endpoint."
+---
+
+Before you call `POST /api/workflows/:slug/run`, you need to know which `inputs` keys to pass. The schema endpoints let you inspect a workflow's Request Input fields, output handle names, and estimated credit cost — so you can build a typed client or validate inputs before executing.
+
+## Endpoints
+
+| Method | Path | Auth required | Description |
+|---|---|---|---|
+| `GET` | `/api/workflows/:slug/schema` | Yes | Full schema including estimated cost |
+| `GET` | `/api/workflows/:slug/public-schema` | No | Public schema for playground workflows |
+
+## GET /api/workflows/:slug/schema
+
+Returns the workflow's input fields, field constraints, and output examples. Requires authentication via `x-api-key` header or session cookie.
+
+```bash
+curl https://knouds.ai/api/workflows/my-pipeline/schema \
+  -H "x-api-key: $KNOUDS_KEY"
+```
+
+### Response fields
+
+<ResponseField name="fields" type="array">
+  Array of input field definitions from the workflow's Request Input node. Each field has a `name` that maps to a key in the `inputs` object when you call the run endpoint.
+</ResponseField>
+
+<ResponseField name="values" type="object">
+  Default values for the input fields, keyed by field name.
+</ResponseField>
+
+<ResponseField name="fieldConstraints" type="object">
+  Validation constraints for fields (e.g. allowed values, min/max), keyed by field name.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The workflow's display name.
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  The workflow's description.
+</ResponseField>
+
+<ResponseField name="tags" type="string[]">
+  The workflow's category tags.
+</ResponseField>
+
+<ResponseField name="estimatedCreditCost" type="number">
+  Estimated credit cost for one execution, calculated from the generator nodes in the workflow and your account tier.
+</ResponseField>
+
+<ResponseField name="exampleOutputs" type="array">
+  Sample outputs from previous executions stored in the workflow. Each item has `type` (`image` or `video`) and `url`.
+</ResponseField>
+
+### Example response
+
+```json
+{
+  "name": "My Thumbnail Pipeline",
+  "description": "Generates product thumbnails",
+  "tags": ["image"],
+  "fields": [
+    { "name": "product_name", "type": "text", "label": "Product Name" },
+    { "name": "tagline", "type": "text", "label": "Tagline" }
+  ],
+  "values": {},
+  "fieldConstraints": {},
+  "estimatedCreditCost": 12
+}
+```
+
+## GET /api/workflows/:slug/public-schema
+
+Returns the public schema for a workflow whose `publicPlayground` flag is set to `true`. No authentication is required, making this endpoint suitable for embedding public playground forms in external sites.
+
+<Info>
+This endpoint returns `404` if the workflow's `publicPlayground` flag is `false`, even if the workflow exists.
+</Info>
+
+The public schema response includes the input fields, default values, and the full `nodes`/`edges`/`viewport` payload needed to duplicate the workflow into a visitor's account on signup.
+
+## Using schemas to validate inputs
+
+The `fields` array tells you the exact key names to pass in your `inputs` object. A workflow with fields `product_name` and `tagline` requires this run call:
+
+```bash
+curl -X POST https://knouds.ai/api/workflows/my-thumbnail-pipeline/run \
+  -H "x-api-key: $KNOUDS_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"inputs":{"product_name":"Knouds","tagline":"AI pipelines"}}'
+```
+
+<Tip>
+Fetch the schema once at startup and cache it. Field names and types only change when the workflow owner updates the Request Input node.
+</Tip>

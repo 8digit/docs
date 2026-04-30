@@ -1,0 +1,80 @@
+---
+title: "POST /api/models/:internalName/run — run a model directly"
+description: "Invoke a single registered AI model by its internal name without building a full workflow, using admin-scope API keys for direct model access."
+---
+
+The model run endpoint lets you call a single registered AI model directly, without wrapping it in a deployed workflow. This is useful for quick integrations where you know exactly which model you need and want to skip the canvas entirely. Because it bypasses the workflow layer, it requires `admin` scope.
+
+## Endpoint
+
+```
+POST /api/models/:internalName/run
+```
+
+**Scope required:** `admin`
+
+<Info>
+Only registered models that are enabled in the Knouds registry are reachable via this endpoint. Built-in canvas models (such as `nano-banana-2`, `kling-v3-i2v`, and the built-in Claude node) are not exposed here. To use those, deploy a workflow that includes them and call it via `POST /api/workflows/:slug/run`.
+</Info>
+
+## Path parameters
+
+<ParamField path="internalName" type="string" required>
+  The model's internal slug as shown in the Node Builder in the Knouds app. For example, `seedance-2-i2v`. Only lowercase letters, digits, and hyphens are accepted.
+</ParamField>
+
+## Request body
+
+<ParamField body="inputs" type="object" required>
+  Key-value pairs matching the field names in the model's registry definition. The field names are the same ones you would fill in on the canvas card. Pass all required fields for the model you are calling.
+</ParamField>
+
+### Example
+
+```bash
+curl -X POST https://knouds.ai/api/models/seedance-2-i2v/run \
+  -H "x-api-key: $KNOUDS_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"inputs":{"prompt":"midnight neon street","aspect_ratio":"16:9"}}'
+```
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  `true` when the model executed without error.
+</ResponseField>
+
+<ResponseField name="result" type="object">
+  The model's output. Includes any media URLs (S3-hosted) from the provider response and the raw provider payload. Media URLs are re-uploaded to Knouds S3 storage after execution.
+</ResponseField>
+
+<ResponseField name="cost" type="number">
+  Execution cost in USD before any tier markup.
+</ResponseField>
+
+<ResponseField name="ms" type="number">
+  Total wall-clock time for the execution in milliseconds.
+</ResponseField>
+
+### Example response
+
+```json
+{
+  "success": true,
+  "result": {
+    "video": {
+      "url": "https://knouds-media.s3.amazonaws.com/media/xyz789.mp4"
+    }
+  },
+  "cost": 0.05,
+  "ms": 12400
+}
+```
+
+## Discovering available models
+
+To find valid `internalName` values, open the **Node Builder** in the Knouds app (requires admin access). Each enabled, non-native model definition shows its internal name. You can also check the model's slug in the Node Builder's edit view.
+
+<Warning>
+Calling this endpoint with a built-in canvas model name (e.g. `nano-banana-2`) returns `404 MODEL_NOT_FOUND`. Build a workflow containing that node and call it via the workflow run endpoint instead.
+</Warning>

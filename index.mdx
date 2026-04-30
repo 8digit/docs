@@ -1,0 +1,47 @@
+---
+title: "Knouds: AI Pipeline Editor for Visual Workflows"
+description: "Knouds lets you build AI image, video, and audio generation pipelines visually, then deploy them as API endpoints. No ML expertise required."
+---
+
+Knouds is a visual canvas where you connect AI model nodes — image generators, video generators, music makers, and LLM assistants — into pipelines, then call them from your code with a single HTTP request. This documentation covers everything you need to build your first workflow, deploy it as an API, and integrate it into your product.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Build and run your first AI workflow in under five minutes.
+  </Card>
+  <Card title="Core Concepts" icon="lightbulb" href="/concepts">
+    Learn about nodes, edges, handles, and the workflow execution model.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Call deployed workflows and individual AI models from your code.
+  </Card>
+  <Card title="Node Types" icon="diagram-project" href="/nodes/overview">
+    Explore every node available on the canvas and what each one does.
+  </Card>
+</CardGroup>
+
+## How Knouds works
+
+<Steps>
+  <Step title="Build on the canvas">
+    Drag nodes onto the canvas and connect them with typed edges. Each node represents one step in your AI pipeline — generate an image, pass it to a video generator, or analyze it with a language model.
+  </Step>
+  <Step title="Run and iterate">
+    Click **Run** on any node or the whole workflow to execute it. Results appear inline on the canvas. Tweak parameters and re-run until the output is right.
+  </Step>
+  <Step title="Deploy as an API">
+    Every workflow can be deployed as a REST endpoint. Your Request Input nodes define the body schema; your Response Output nodes define what gets returned.
+  </Step>
+  <Step title="Call from your code">
+    Use your API key and a single `POST` request to trigger the workflow from any environment — a backend server, a GitHub Action, or a browser.
+  </Step>
+</Steps>
+
+<CardGroup cols={2}>
+  <Card title="Credits & Plans" icon="credit-card" href="/account/plans">
+    Understand credits, tiers, and what's included in each plan.
+  </Card>
+  <Card title="API Keys" icon="key" href="/integrations/api-keys">
+    Generate and manage API keys to call Knouds from your code.
+  </Card>
+</CardGroup>

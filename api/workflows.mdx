@@ -1,0 +1,98 @@
+---
+title: "Workflow management API: create, update, and delete"
+description: "Manage Knouds workflows programmatically with admin-scope API keys: list, create, update, move to folders, and delete using the full workflow JSON."
+---
+
+The workflow management endpoints let you build, update, and organize workflows without opening the Knouds canvas. All write operations require `admin` scope. Read operations (list and get) are available to any authenticated user via a session cookie, making them useful for discovery and integration even without an admin key.
+
+## Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/workflows` | List your workflows and templates |
+| `GET` | `/api/workflows/:slug` | Get a workflow's full JSON |
+| `POST` | `/api/workflows` | Create a new workflow |
+| `PUT` | `/api/workflows/:slug` | Update an existing workflow |
+| `PUT` | `/api/workflows/:slug/move` | Move a workflow to a folder |
+| `DELETE` | `/api/workflows/:slug` | Delete a workflow |
+
+**Scope required for write operations:** `admin`
+
+## Workflow slug
+
+A workflow's slug is derived from its name at creation time and is **immutable** after that. It serves as the workflow's identifier in the filesystem, in URLs, and in usage logs.
+
+<Warning>
+Choose your workflow names carefully at creation. The slug cannot be changed after the workflow is created. Renaming the visible `name` field does not change the slug.
+</Warning>
+
+## Workflow JSON shape
+
+The body for `POST /api/workflows` and `PUT /api/workflows/:slug` is the full workflow JSON object:
+
+```json
+{
+  "name": "My Workflow",
+  "description": "Optional description",
+  "tags": ["image"],
+  "isTemplate": false,
+  "publicPlayground": false,
+  "nodes": [],
+  "edges": [],
+  "viewport": { "x": 0, "y": 0, "zoom": 1 }
+}
+```
+
+## Key body fields
+
+<ParamField body="name" type="string" required>
+  Human-readable workflow name. Used to derive the slug at creation — choose it carefully since the slug is immutable.
+</ParamField>
+
+<ParamField body="description" type="string">
+  Optional description shown in the workflow list.
+</ParamField>
+
+<ParamField body="tags" type="string[]">
+  Category tags such as `image`, `video`, or `text`. Used for filtering in the UI.
+</ParamField>
+
+<ParamField body="isTemplate" type="boolean">
+  When `true`, the workflow is visible to all users as a template. Defaults to `false`.
+</ParamField>
+
+<ParamField body="publicPlayground" type="boolean">
+  When `true`, the workflow's playground is publicly accessible without authentication. Defaults to `false`.
+</ParamField>
+
+<ParamField body="nodes" type="array">
+  Array of node objects. Each node has `id`, `type`, `position`, and `data` fields. See the Node Builder documentation for the full node schema.
+</ParamField>
+
+<ParamField body="edges" type="array">
+  Array of edge objects connecting nodes. Each edge has `id`, `source`, `target`, `sourceHandle`, and `targetHandle` fields.
+</ParamField>
+
+<ParamField body="viewport" type="object">
+  Canvas viewport state: `{ x, y, zoom }`. Restored when a user opens the workflow in the editor.
+</ParamField>
+
+<ParamField body="folderId" type="string">
+  The ID of the folder to place this workflow in. Pass `null` or omit to place at the root level.
+</ParamField>
+
+## Move to a folder
+
+`PUT /api/workflows/:slug/move` accepts a single body field:
+
+<ParamField body="folderId" type="string">
+  The target folder ID. Pass `null` to move the workflow back to the root level.
+</ParamField>
+
+## Delete response
+
+A successful delete returns:
+
+```json
+{ "deleted": "my-workflow-slug" }
+```

@@ -1,0 +1,92 @@
+---
+title: "Knouds API error codes: status codes and responses"
+description: "Every non-2xx response includes a machine-readable code field. Learn what each status and code means and how to recover from common failures."
+---
+
+When a request fails, the Knouds API always returns a JSON body with at least an `error` string and a `code` identifier. Many errors include additional context fields that tell you exactly what went wrong — for example, the scope your key has versus the scope the endpoint requires.
+
+## Error response shape
+
+```json
+{
+  "error": "Human-readable description",
+  "code": "MACHINE_READABLE_CODE",
+  ...context
+}
+```
+
+## Error codes
+
+| Status | Code | Meaning |
+|---|---|---|
+| 400 | `INVALID_INPUTS` | Request body is missing or malformed |
+| 400 | `INVALID_SLUG` | Path parameter is not a valid slug format |
+| 400 | `INVALID_SCOPE` | Scope value is not one of the accepted values |
+| 401 | — | Missing or invalid authentication |
+| 402 | `INSUFFICIENT_CREDITS` | Account has no remaining credits |
+| 402 | `grant_exhausted` | Trial grant used up — upgrade tier to continue |
+| 403 | `SCOPE_DENIED` | API key scope is below the route's minimum |
+| 403 | `MODEL_TIER_REQUIRED` | Model requires a higher account tier |
+| 404 | `MODEL_NOT_FOUND` | No enabled registry model matches the `internalName` |
+| 404 | `Workflow not found` | No workflow matches the `slug` |
+| 429 | `RATE_LIMIT_EXCEEDED` | Per-minute rate limit exhausted |
+| 500 | `EXECUTION_FAILED` | Provider call failed during execution |
+
+## Error details by code
+
+### SCOPE_DENIED
+
+Returned when your key's scope is below the minimum required by the endpoint. The response body includes the scopes for comparison:
+
+```json
+{
+  "error": "Insufficient scope",
+  "code": "SCOPE_DENIED",
+  "required": "admin",
+  "actual": "deployment"
+}
+```
+
+<ResponseField name="required" type="string">
+  The minimum scope the endpoint requires (e.g. `admin`, `deployment`, `free`).
+</ResponseField>
+
+<ResponseField name="actual" type="string">
+  The scope your key currently carries.
+</ResponseField>
+
+Upgrade your key's scope in **Settings → API Keys** or use a key with the correct scope.
+
+### MODEL_TIER_REQUIRED
+
+Returned when a model is gated to a higher account tier than yours:
+
+```json
+{
+  "error": "Model requires a higher tier",
+  "code": "MODEL_TIER_REQUIRED",
+  "requiredTiers": ["business", "enterprise"],
+  "currentTier": "pro",
+  "reason": "tier_blocked"
+}
+```
+
+<ResponseField name="requiredTiers" type="string[]">
+  Account tiers that can access this model.
+</ResponseField>
+
+<ResponseField name="currentTier" type="string">
+  Your current account tier.
+</ResponseField>
+
+<ResponseField name="reason" type="string">
+  `tier_blocked` when your tier is too low; `grant_exhausted` when a trial grant ran out.
+</ResponseField>
+
+### grant_exhausted
+
+Your account had a free trial grant for this model and you have used it up. This is a tier-level gate, not a credit balance issue — topping up credits will **not** unlock access. Upgrade your account tier to continue using the model.
+
+### RATE_LIMIT_EXCEEDED
+
+The per-minute window for your `(user, route)` pair is exhausted. Wait for the `Retry-After` seconds shown in the response header, then retry.
